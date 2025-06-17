@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, request, jsonify, render_template
 from jira import JIRA
 import os
 
@@ -9,11 +9,16 @@ app = Flask(__name__)
 def index():
     return jsonify({"Choo Choo": "Welcome to your Flask app 🚅"})
 
-@app.route('/jira/<issue_key>')
-def consultar_issue(issue_key):
-    # Datos en duro solo para pruebas (⚠️ nunca en producción)
-    username = 'jemmy.perez'
-    token = 'BBDC-MzY3Nzk0NzI0MjgyOqO3TBZ55roayjdja6+8zXmASp8I'
+@app.route('/form')
+def mostrar_formulario():
+    return render_template("form.html")
+
+@app.route('/consulta', methods=['POST'])
+def consultar_formulario():
+    username = request.form.get('username')
+    token = request.form.get('token')
+    issue_key = request.form.get('issue_key')
+
     jira_options = {'server': 'https://jira.globaldevtools.bbva.com'}
 
     try:
