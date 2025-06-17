@@ -22,16 +22,13 @@ def sync_ticket():
         if not datos:
             return jsonify({"error": "No se recibió JSON válido"}), 400
 
-        # Agrega timestamp del servidor
-        registro = {
-            "timestamp_servidor": datetime.utcnow().isoformat(),
-            "datos": datos
-        }
+        # Agrega el timestamp dentro del mismo diccionario
+        datos["timestamp_servidor"] = datetime.utcnow().isoformat()
 
         # Guarda en archivo txt
         ruta_archivo = os.path.join(os.path.dirname(__file__), 'registro.txt')
         with open(ruta_archivo, 'a', encoding='utf-8') as f:
-            f.write(json.dumps(registro, ensure_ascii=False) + '\n')
+            f.write(json.dumps(datos, ensure_ascii=False) + '\n')
 
         return jsonify({"estado": "✅ Registro guardado"}), 200
 
@@ -56,18 +53,21 @@ def ver_registros():
                     registro = json.loads(linea)
                     registros.append(registro)
 
-                    # Cuenta si el timestamp del servidor es de hoy
-                    timestamp = datetime.fromisoformat(registro["timestamp_servidor"])
-                    if timestamp.date() == hoy:
-                        total_hoy += 1
+                    # ✅ Ahora el timestamp está directamente en el registro
+                    if "timestamp_servidor" in registro:
+                        timestamp = datetime.fromisoformat(registro["timestamp_servidor"])
+                        if timestamp.date() == hoy:
+                            total_hoy += 1
 
                 except json.JSONDecodeError:
-                    registros.append({"error": "❌ Línea no válida", "contenido": linea.strip()})
+                    registros.append({
+                        "error": "❌ Línea no válida",
+                        "contenido": linea.strip()
+                    })
 
     except Exception as e:
-        return Response(f"Error al leer los registros: {str(e)}", mimetype='text/plain')
+        return Response(f"❌ Error al leer los registros: {str(e)}", mimetype='text/plain')
 
-    # Formatear como texto legible con saltos de línea
     registros_texto = json.dumps(registros, indent=2, ensure_ascii=False)
     mensaje = f"\n\n📅 Total de registros insertados hoy ({hoy}): {total_hoy}"
 
