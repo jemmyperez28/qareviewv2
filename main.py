@@ -36,6 +36,26 @@ def sync_ticket():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/ver-registros', methods=['GET'])
+def ver_registros():
+    ruta_archivo = os.path.join(os.path.dirname(__file__), 'registro.txt')
+
+    if not os.path.exists(ruta_archivo):
+        return jsonify({"registros": [], "mensaje": "📭 No hay registros todavía"}), 200
+
+    registros = []
+    try:
+        with open(ruta_archivo, 'r', encoding='utf-8') as f:
+            for linea in f:
+                try:
+                    registros.append(json.loads(linea))
+                except json.JSONDecodeError:
+                    registros.append({"error": "❌ Línea no válida", "contenido": linea.strip()})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    return jsonify({"registros": registros}), 200
+
 @app.route('/consulta', methods=['POST'])
 def consultar_formulario():
     username = request.form.get('username')
