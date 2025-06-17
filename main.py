@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 from jira import JIRA
 import os
-from datetime import datetime
+from datetime import datetime , date
 import json
 
 app = Flask(__name__)
@@ -43,20 +43,35 @@ def ver_registros():
     ruta_archivo = os.path.join(os.path.dirname(__file__), 'registro.txt')
 
     if not os.path.exists(ruta_archivo):
-        return jsonify({"registros": [], "mensaje": "📭 No hay registros todavía"}), 200
+        return Response("📭 No hay registros todavía", mimetype='text/plain')
 
     registros = []
+    hoy = date.today()
+    total_hoy = 0
+
     try:
         with open(ruta_archivo, 'r', encoding='utf-8') as f:
             for linea in f:
                 try:
-                    registros.append(json.loads(linea))
+                    registro = json.loads(linea)
+                    registros.append(registro)
+
+                    # Cuenta si el timestamp del servidor es de hoy
+                    timestamp = datetime.fromisoformat(registro["timestamp_servidor"])
+                    if timestamp.date() == hoy:
+                        total_hoy += 1
+
                 except json.JSONDecodeError:
                     registros.append({"error": "❌ Línea no válida", "contenido": linea.strip()})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
-    return jsonify({"registros": registros}), 200
+    except Exception as e:
+        return Response(f"Error al leer los registros: {str(e)}", mimetype='text/plain')
+
+    # Formatear como texto legible con saltos de línea
+    registros_texto = json.dumps(registros, indent=2, ensure_ascii=False)
+    mensaje = f"\n\n📅 Total de registros insertados hoy ({hoy}): {total_hoy}"
+
+    return Response(registros_texto + mensaje, mimetype='text/plain')
 
 @app.route('/consulta', methods=['POST'])
 def consultar_formulario():
