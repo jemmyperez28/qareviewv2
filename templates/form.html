@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Consulta Jira</title>
+</head>
+<body>
+    <h2>🔍 Consulta de Ticket Jira</h2>
+    <form method="post" action="/consulta">
+        <label>Usuario Jira:</label><br>
+        <input type="text" name="username" required><br><br>
+
+        <label>Token de acceso:</label><br>
+        <input type="password" name="token" required><br><br>
+
+        <label>Código del ticket (ej. DEDATIOCL1-4969):</label><br>
+        <input type="text" name="issue_key" required><br><br>
+
+        <button type="submit">Consultar</button>
+    </form>
+</body>
+</html>
