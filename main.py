@@ -13,6 +13,29 @@ def index():
 def mostrar_formulario():
     return render_template("form.html")
 
+@app.route('/sync', methods=['POST'])
+def sync_ticket():
+    try:
+        datos = request.get_json()
+        if not datos:
+            return jsonify({"error": "No se recibió JSON válido"}), 400
+
+        # Agrega timestamp del servidor
+        registro = {
+            "timestamp_servidor": datetime.utcnow().isoformat(),
+            "datos": datos
+        }
+
+        # Guarda en archivo txt
+        ruta_archivo = os.path.join(os.path.dirname(__file__), 'registro.txt')
+        with open(ruta_archivo, 'a', encoding='utf-8') as f:
+            f.write(json.dumps(registro, ensure_ascii=False) + '\n')
+
+        return jsonify({"estado": "✅ Registro guardado"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/consulta', methods=['POST'])
 def consultar_formulario():
     username = request.form.get('username')
