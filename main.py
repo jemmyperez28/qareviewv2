@@ -1,11 +1,17 @@
-from flask import Flask, request, jsonify, render_template, Response
+from flask import Flask, request, jsonify, render_template, Response, redirect, url_for, flash
 from jira import JIRA
 import os
 from datetime import datetime , date
 import json
 
 app = Flask(__name__)
+app.secret_key = "clave_secreta_temporal"
 
+# Variable global para almacenar el token (temporalmente en memoria)
+jira_auth_token = {
+    "username": None,
+    "token": None
+}
 
 @app.route('/')
 def index():
@@ -14,6 +20,32 @@ def index():
 @app.route('/form')
 def mostrar_formulario():
     return render_template("form.html")
+
+@app.route('/auth', methods=['GET', 'POST'])
+def auth_jira():
+    global jira_auth_token
+
+    if request.method == 'POST':
+        username = request.form.get('username')
+        token = request.form.get('token')
+
+        try:
+            jira_options = {'server': 'https://jira.globaldevtools.bbva.com'}
+            jira_test = JIRA(options=jira_options, auth=(username, token))
+            jira_test.projects()  # Intenta acceder a algo para verificar
+
+            # ✅ Guardar token en memoria
+            jira_auth_token["username"] = username
+            jira_auth_token["token"] = token
+
+            flash("✅ Autenticación exitosa. Token guardado en memoria.", "success")
+            return redirect(url_for('auth_jira'))
+
+        except Exception as e:
+            flash(f"❌ Error de autenticación: {str(e)}", "error")
+            return redirect(url_for('auth_jira'))
+
+    return render_template("auth.html", username=jira_auth_token["username"])
 
 @app.route('/sync', methods=['POST'])
 def sync_ticket():
@@ -75,9 +107,14 @@ def ver_registros():
 
 @app.route('/consulta', methods=['POST'])
 def consultar_formulario():
-    username = request.form.get('username')
-    token = request.form.get('token')
-    issue_key = request.form.get('issue_key')
+    global jira_auth_token
+
+    username = jira_auth_token.get("username")
+    token = jira_auth_token.get("token")
+    issue_key = 'DEDATIOCL1-5240'  # fijo
+
+    if not username or not token:
+        return jsonify({"error": "❌ No se ha autenticado aún. Ingresa credenciales en /auth"}), 400
 
     jira_options = {'server': 'https://jira.globaldevtools.bbva.com'}
 
@@ -98,6 +135,54 @@ def consultar_formulario():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/tickets')
+def vista_tickets_multiples():
+    global jira_auth_token
+
+    username = jira_auth_token.get("username")
+    token = jira_auth_token.get("token")
+
+    if not username or not token:
+        return render_template("tickets.html", error="❌ No autenticado. Por favor ve a /auth."), 401
+
+    jira_options = {'server': 'https://jira.globaldevtools.bbva.com'}
+
+    # Mapeo de tickets a su tipo de desarrollo
+    tickets_info = {
+        "DEDATIOCL1-5015": "ControlM",
+        "DEDATIOCL1-5315": "Kirby",
+        "DEDATIOCL1-5364": "ControlM",
+        "DEDATIOCL1-5299": "ControlM"
+    }
+
+    resultados = []
+    try:
+        jira_obj = JIRA(options=jira_options, auth=(username, token))
+        for key, tipo_desarrollo in tickets_info.items():
+            try:
+                issue = jira_obj.issue(key)
+                resultados.append({
+                    "key": key,
+                    "status": issue.fields.status.name,
+                    "assignee": issue.fields.assignee.displayName if issue.fields.assignee else "Sin asignar",
+                    "tipo": tipo_desarrollo
+                })
+            except Exception as e:
+                resultados.append({
+                    "key": key,
+                    "status": "❌ Error",
+                    "assignee": str(e),
+                    "tipo": tipo_desarrollo
+                })
+
+    except Exception as e:
+        return render_template("tickets.html", error=f"❌ Error conectando a Jira: {str(e)}"), 500
+
+    return render_template("tickets.html", tickets=resultados)
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=os.getenv("PORT", default=5000))

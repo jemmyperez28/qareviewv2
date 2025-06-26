@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Listado de Tickets Jira{% endblock %}
+
+{% block content %}
+<h2>📋 Estado de Tickets del grupo</h2>
+
+{% if error %}
+  <div style="padding: 1rem; background-color: #ffcdd2; border-radius: 8px; margin-bottom: 1rem;">
+    {{ error }}
+  </div>
+{% else %}
+  <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+      <thead style="background-color: #6200ea; color: white;">
+          <tr>
+              <th style="padding: 0.75rem; text-align: left;">Ticket</th>
+              <th style="padding: 0.75rem; text-align: left;">Estado</th>
+              <th style="padding: 0.75rem; text-align: left;">Responsable</th>
+              <th style="padding: 0.75rem; text-align: left;">Tipo de Desarrollo</th>
+          </tr>
+      </thead>
+      <tbody>
+        {% for t in tickets %}
+            {% set bg_color = "#f3f3f3" %}
+            {% if t.status == "Test" %}
+                {% set bg_color = "#c8e6c9" %}
+            {% elif t.status == "To Rework" %}
+                {% set bg_color = "#ffcdd2" %}
+            {% elif t.status == "Ready" %}
+                {% set bg_color = "#bbdefb" %}
+            {% elif t.status == "Blocked" %}
+                {% set bg_color = "#fff9c4" %}
+            {% endif %}
+
+            <tr style="background-color: {{ bg_color }}; border-bottom: 1px solid #ccc;">
+                <td style="padding: 0.75rem;">{{ t.key }}</td>
+                <td style="padding: 0.75rem;">{{ t.status }}</td>
+                <td style="padding: 0.75rem;">{{ t.assignee }}</td>
+                <td style="padding: 0.75rem;">{{ t.tipo }}</td>
+            </tr>
+        {% endfor %}
+      </tbody>
+  </table>
+{% endif %}
+{% endblock %}

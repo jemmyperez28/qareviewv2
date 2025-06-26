@@ -1,21 +1,47 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Consulta Jira</title>
-</head>
-<body>
-    <h2>🔍 Consulta de Ticket Jira</h2>
-    <form method="post" action="/consulta">
-        <label>Usuario Jira:</label><br>
-        <input type="text" name="username" required><br><br>
+{% extends "base.html" %}
 
-        <label>Token de acceso:</label><br>
-        <input type="password" name="token" required><br><br>
+{% block title %}Consulta Rápida Jira{% endblock %}
 
-        <label>Código del ticket (ej. DEDATIOCL1-4969):</label><br>
-        <input type="text" name="issue_key" required><br><br>
+{% block content %}
+<h2>🎯 Consulta rápida de ticket DEDATIOCL1-5240</h2>
+<p>💡 Requiere autenticación previa desde <a href="/auth">/auth</a>.</p>
 
-        <button type="submit">Consultar</button>
-    </form>
-</body>
-</html>
+<button id="consultarBtn">Consultar Ticket</button>
+
+<div id="resultado" style="margin-top: 2rem; padding: 1rem; background-color: #e0e0e0; border-radius: 8px; display: none;">
+    <strong>Resultado:</strong>
+    <pre id="resultadoContenido" style="white-space: pre-wrap;"></pre>
+</div>
+
+<script>
+    document.getElementById('consultarBtn').addEventListener('click', async function () {
+        const btn = this;
+        const resultadoDiv = document.getElementById('resultado');
+        const contenido = document.getElementById('resultadoContenido');
+
+        btn.disabled = true;
+        btn.textContent = "Consultando...";
+
+        try {
+            const res = await fetch('/consulta', {
+                method: 'POST'
+            });
+
+            const data = await res.json();
+            resultadoDiv.style.display = 'block';
+
+            if (res.ok) {
+                contenido.textContent = JSON.stringify(data, null, 2);
+            } else {
+                contenido.textContent = data.error || "Error desconocido.";
+            }
+        } catch (err) {
+            resultadoDiv.style.display = 'block';
+            contenido.textContent = "❌ Error de conexión.";
+        }
+
+        btn.disabled = false;
+        btn.textContent = "Consultar Ticket";
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}App Jira{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Google Fonts + Material Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            min-height: 100vh;
+            background: #f5f5f5;
+        }
+
+        aside {
+            width: 240px;
+            background-color: #6200ea;
+            color: white;
+            padding: 2rem 1rem;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        aside h1 {
+            font-size: 1.4rem;
+            margin-bottom: 2rem;
+        }
+
+        aside a {
+            color: white;
+            text-decoration: none;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        aside a:hover {
+            background-color: #3700b3;
+        }
+
+        .container {
+            flex: 1;
+            padding: 2rem;
+        }
+
+        input, button {
+            font-family: inherit;
+            padding: 0.6rem;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-top: 0.5rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #6200ea;
+            color: white;
+            border: none;
+            margin-top: 1rem;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #3700b3;
+        }
+
+        @media (max-width: 768px) {
+            aside {
+                width: 100%;
+                flex-direction: row;
+                overflow-x: auto;
+            }
+
+            aside h1 {
+                display: none;
+            }
+
+            aside a {
+                flex: 1;
+                justify-content: center;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <aside>
+        <h1>📋 App Jira</h1>
+        <a href="/auth"><span class="material-symbols-outlined">vpn_key</span>Autenticación</a>
+        <a href="/form"><span class="material-symbols-outlined">search</span>Consultar Ticket</a>
+        <a href="/tickets"><span class="material-symbols-outlined">table_chart</span>Ver Tickets</a>
+        <a href="/ver-registros"><span class="material-symbols-outlined">list_alt</span>Validador DataX JIRA</a>
+    </aside>
+
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>
