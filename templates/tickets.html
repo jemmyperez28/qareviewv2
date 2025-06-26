@@ -10,36 +10,43 @@
     {{ error }}
   </div>
 {% else %}
-  <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
-      <thead style="background-color: #6200ea; color: white;">
-          <tr>
-              <th style="padding: 0.75rem; text-align: left;">Ticket</th>
-              <th style="padding: 0.75rem; text-align: left;">Estado</th>
-              <th style="padding: 0.75rem; text-align: left;">Responsable</th>
-              <th style="padding: 0.75rem; text-align: left;">Tipo de Desarrollo</th>
-          </tr>
-      </thead>
-      <tbody>
+  <table style="width: 100%; border-collapse: collapse; margin-top: 1rem; text-align: center;">
+    <thead style="background-color: #6200ea; color: white;">
+        <tr>
+            <th style="padding: 0.75rem;">Ticket</th>
+            <th style="padding: 0.75rem;">Estado</th>
+            <th style="padding: 0.75rem;">Responsable</th>
+            <th style="padding: 0.75rem;">Tipo Desarrollo</th>
+            <th style="padding: 0.75rem;">Team Backlog</th>
+            <th style="padding: 0.75rem;">⏱ Ultimo Estado</th>
+        </tr>
+    </thead>
+    <tbody>
         {% for t in tickets %}
-            {% set bg_color = "#f3f3f3" %}
-            {% if t.status == "Test" %}
-                {% set bg_color = "#c8e6c9" %}
-            {% elif t.status == "To Rework" %}
-                {% set bg_color = "#ffcdd2" %}
-            {% elif t.status == "Ready" %}
-                {% set bg_color = "#bbdefb" %}
-            {% elif t.status == "Blocked" %}
-                {% set bg_color = "#fff9c4" %}
-            {% endif %}
-
-            <tr style="background-color: {{ bg_color }}; border-bottom: 1px solid #ccc;">
+            <tr style="background-color: #f3f3f3; border-bottom: 1px solid #ccc;">
                 <td style="padding: 0.75rem;">{{ t.key }}</td>
-                <td style="padding: 0.75rem;">{{ t.status }}</td>
+                
+                {% set estado_color = "" %}
+                {% if t.status == "Test" %}
+                    {% set estado_color = "#c8e6c9" %}
+                {% elif t.status == "To Rework" %}
+                    {% set estado_color = "#ffcdd2" %}
+                {% elif t.status == "Ready" %}
+                    {% set estado_color = "#bbdefb" %}
+                {% elif t.status == "Blocked" %}
+                    {% set estado_color = "#fff9c4" %}
+                {% endif %}
+                <td style="padding: 0.75rem; background-color: {{ estado_color }}">{{ t.status }}</td>
+
                 <td style="padding: 0.75rem;">{{ t.assignee }}</td>
                 <td style="padding: 0.75rem;">{{ t.tipo }}</td>
+                <td style="padding: 0.75rem;">{{ t.backlog }}</td>
+                <td style="padding: 0.75rem;">{{ t.horas_estado }}</td>
             </tr>
         {% endfor %}
-      </tbody>
-  </table>
+    </tbody>
+</table>
+
+
 {% endif %}
 {% endblock %}

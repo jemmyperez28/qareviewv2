@@ -161,19 +161,45 @@ def vista_tickets_multiples():
         jira_obj = JIRA(options=jira_options, auth=(username, token))
         for key, tipo_desarrollo in tickets_info.items():
             try:
-                issue = jira_obj.issue(key)
+                issue = jira_obj.issue(key, expand='changelog')
+                # Buscar Team Backlog (ajusta el campo real si es diferente)
+                team_backlog = getattr(issue.fields, 'customfield_18900', 'No disponible')
+
+                # Obtener último cambio de estado
+                ultimo_cambio_estado = None
+                for historial in reversed(issue.changelog.histories):
+                    for item in historial.items:
+                        if item.field.lower() == 'status':
+                            ultimo_cambio_estado = datetime.strptime(historial.created[:19], "%Y-%m-%dT%H:%M:%S")
+                            break
+                    if ultimo_cambio_estado:
+                        break
+
+                if ultimo_cambio_estado:
+                    tiempo_transcurrido = datetime.utcnow() - ultimo_cambio_estado
+                    dias = tiempo_transcurrido.days
+                    horas = round(tiempo_transcurrido.seconds / 3600)
+                    tiempo_formateado = f"{dias} días, {horas} horas"
+                else:
+                    tiempo_formateado = "N/D"
+
                 resultados.append({
                     "key": key,
                     "status": issue.fields.status.name,
                     "assignee": issue.fields.assignee.displayName if issue.fields.assignee else "Sin asignar",
-                    "tipo": tipo_desarrollo
+                    "tipo": tipo_desarrollo,
+                    "backlog": team_backlog,
+                    "horas_estado": tiempo_formateado
                 })
+
             except Exception as e:
                 resultados.append({
                     "key": key,
                     "status": "❌ Error",
                     "assignee": str(e),
-                    "tipo": tipo_desarrollo
+                    "tipo": tipo_desarrollo,
+                    "backlog": "N/D",
+                    "horas_estado": "N/D"
                 })
 
     except Exception as e:
