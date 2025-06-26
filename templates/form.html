@@ -1,47 +1,46 @@
 {% extends "base.html" %}
 
-{% block title %}Consulta Rápida Jira{% endblock %}
+{% block title %}Validar Ticket DataX{% endblock %}
 
 {% block content %}
-<h2>🎯 Consulta rápida de ticket DEDATIOCL1-5240</h2>
-<p>💡 Requiere autenticación previa desde <a href="/auth">/auth</a>.</p>
+<h2>📦 Validación de Ticket DataX</h2>
+<p>Ingresa el código de un ticket Jira para validarlo. (Ej: <code>DEDATIOCL1-5240</code>)</p>
 
-<button id="consultarBtn">Consultar Ticket</button>
+<form method="post" action="/validar-datax">
+    <label for="ticket_code">Código del Ticket:</label><br>
+    <input type="text" id="ticket_code" name="ticket_code" required><br><br>
 
-<div id="resultado" style="margin-top: 2rem; padding: 1rem; background-color: #e0e0e0; border-radius: 8px; display: none;">
-    <strong>Resultado:</strong>
-    <pre id="resultadoContenido" style="white-space: pre-wrap;"></pre>
-</div>
+    <button type="submit">Validar Ticket</button>
+</form>
 
-<script>
-    document.getElementById('consultarBtn').addEventListener('click', async function () {
-        const btn = this;
-        const resultadoDiv = document.getElementById('resultado');
-        const contenido = document.getElementById('resultadoContenido');
+{% if resultado %}
+  <div style="margin-top: 2rem; background: #e0f7fa; padding: 1rem; border-radius: 8px;">
+    <strong>Resultado del Ticket:</strong><br>
+    Código: {{ resultado.key }}<br>
+    Estado: {{ resultado.status }}<br>
+    Responsable: {{ resultado.assignee }}<br>
+    Descripción: {{ resultado.summary }}
 
-        btn.disabled = true;
-        btn.textContent = "Consultando...";
+    <div style="margin-top: 1rem;">
+      <strong>Validación de Pre-Requisitos DATAX:</strong>
+      <ul style="list-style: none; padding-left: 0;">
+        {% for item in resultado.checklist %}
+          <li>
+            {% if item.ok %}
+              ✅ {{ item.nombre }}
+            {% else %}
+              ❌ {{ item.nombre }}
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+{% endif %}
 
-        try {
-            const res = await fetch('/consulta', {
-                method: 'POST'
-            });
-
-            const data = await res.json();
-            resultadoDiv.style.display = 'block';
-
-            if (res.ok) {
-                contenido.textContent = JSON.stringify(data, null, 2);
-            } else {
-                contenido.textContent = data.error || "Error desconocido.";
-            }
-        } catch (err) {
-            resultadoDiv.style.display = 'block';
-            contenido.textContent = "❌ Error de conexión.";
-        }
-
-        btn.disabled = false;
-        btn.textContent = "Consultar Ticket";
-    });
-</script>
+{% if error %}
+  <div style="margin-top: 2rem; background: #ffcdd2; padding: 1rem; border-radius: 8px;">
+    {{ error }}
+  </div>
+{% endif %}
 {% endblock %}

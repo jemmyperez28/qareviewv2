@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}QAIRA - Test de Campos Jira{% endblock %}
+
+{% block content %}
+<h2>🧪 Campos crudos del ticket <code>DEDATIOCL1-5240</code></h2>
+
+{% if error %}
+  <div style="padding: 1rem; background-color: #ffcdd2; border-radius: 8px;">
+    {{ error }}
+  </div>
+{% else %}
+  <div style="margin-top: 1rem; background-color: #eeeeee; padding: 1rem; border-radius: 8px;">
+    <pre style="white-space: pre-wrap; font-size: 0.85rem;">{{ campos | tojson(indent=2) }}</pre>
+  </div>
+{% endif %}
+{% endblock %}

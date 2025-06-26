@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template, Response, redirect, url_for, flash
 from jira import JIRA
 import os
-from datetime import datetime , date
+from datetime import datetime, date
 import json
 
 app = Flask(__name__)
@@ -14,8 +14,8 @@ jira_auth_token = {
 }
 
 @app.route('/')
-def index():
-    return jsonify({"Choo Choo": " Welcome to your Flask app 🚅"})
+def redireccion_raiz():
+    return redirect(url_for('auth_jira'))
 
 @app.route('/form')
 def mostrar_formulario():
@@ -32,9 +32,8 @@ def auth_jira():
         try:
             jira_options = {'server': 'https://jira.globaldevtools.bbva.com'}
             jira_test = JIRA(options=jira_options, auth=(username, token))
-            jira_test.projects()  # Intenta acceder a algo para verificar
+            jira_test.projects()
 
-            # ✅ Guardar token en memoria
             jira_auth_token["username"] = username
             jira_auth_token["token"] = token
 
@@ -54,10 +53,8 @@ def sync_ticket():
         if not datos:
             return jsonify({"error": "No se recibió JSON válido"}), 400
 
-        # Agrega el timestamp dentro del mismo diccionario
         datos["timestamp_servidor"] = datetime.utcnow().isoformat()
 
-        # Guarda en archivo txt
         ruta_archivo = os.path.join(os.path.dirname(__file__), 'registro.txt')
         with open(ruta_archivo, 'a', encoding='utf-8') as f:
             f.write(json.dumps(datos, ensure_ascii=False) + '\n')
@@ -85,7 +82,6 @@ def ver_registros():
                     registro = json.loads(linea)
                     registros.append(registro)
 
-                    # ✅ Ahora el timestamp está directamente en el registro
                     if "timestamp_servidor" in registro:
                         timestamp = datetime.fromisoformat(registro["timestamp_servidor"])
                         if timestamp.date() == hoy:
@@ -111,7 +107,7 @@ def consultar_formulario():
 
     username = jira_auth_token.get("username")
     token = jira_auth_token.get("token")
-    issue_key = 'DEDATIOCL1-5240'  # fijo
+    issue_key = 'DEDATIOCL1-5315'
 
     if not username or not token:
         return jsonify({"error": "❌ No se ha autenticado aún. Ingresa credenciales en /auth"}), 400
@@ -148,7 +144,6 @@ def vista_tickets_multiples():
 
     jira_options = {'server': 'https://jira.globaldevtools.bbva.com'}
 
-    # Mapeo de tickets a su tipo de desarrollo
     tickets_info = {
         "DEDATIOCL1-5015": "ControlM",
         "DEDATIOCL1-5315": "Kirby",
@@ -162,10 +157,12 @@ def vista_tickets_multiples():
         for key, tipo_desarrollo in tickets_info.items():
             try:
                 issue = jira_obj.issue(key, expand='changelog')
-                # Buscar Team Backlog (ajusta el campo real si es diferente)
-                team_backlog = getattr(issue.fields, 'customfield_18900', 'No disponible')
+                team_backlog = "No disponible"
+                for field_key, field_val in issue.fields.__dict__.items():
+                    if isinstance(field_val, dict) and field_val.get("value") in ["ControlM", "Kirby", "DataQuality"]:
+                        team_backlog = field_val.get("value")
+                        break
 
-                # Obtener último cambio de estado
                 ultimo_cambio_estado = None
                 for historial in reversed(issue.changelog.histories):
                     for item in historial.items:
@@ -207,6 +204,65 @@ def vista_tickets_multiples():
 
     return render_template("tickets.html", tickets=resultados)
 
+@app.route('/test')
+def vista_test():
+    global jira_auth_token
+    username = jira_auth_token.get("username")
+    token = jira_auth_token.get("token")
+    issue_key = 'DEDATIOCL1-5315'
+
+    if not username or not token:
+        return render_template("test.html", error="❌ No autenticado. Por favor ve a /auth."), 401
+
+    jira_options = {'server': 'https://jira.globaldevtools.bbva.com'}
+
+    try:
+        jira_obj = JIRA(options=jira_options, auth=(username, token))
+        issue = jira_obj.issue(issue_key)
+        campos = issue.raw.get("fields", {})
+        return render_template("test.html", campos=campos)
+    except Exception as e:
+        return render_template("test.html", error=f"❌ Error al obtener el ticket: {str(e)}")
+
+@app.route('/validar-datax', methods=['POST'])
+def validar_datax():
+    global jira_auth_token
+    username = jira_auth_token.get("username")
+    token = jira_auth_token.get("token")
+    issue_key = request.form.get("ticket_code")
+
+    if not username or not token:
+        return render_template("form.html", error="❌ No autenticado. Ve a /auth."), 401
+
+    if not issue_key:
+        return render_template("form.html", error="❌ Debes ingresar un código de ticket."), 400
+
+    jira_options = {'server': 'https://jira.globaldevtools.bbva.com'}
+
+    try:
+        jira_obj = JIRA(options=jira_options, auth=(username, token))
+        issue = jira_obj.issue(issue_key)
+
+        labels = issue.fields.labels if hasattr(issue.fields, 'labels') else []
+
+        checklist = [
+            {"nombre": "DATAX_DQA", "ok": "DATAX_DQA" in labels},
+            {"nombre": "PROMOCION_NUEVA", "ok": "PROMOCION_NUEVA" in labels},
+            {"nombre": "CRQ*", "ok": any(label.startswith("CRQ") for label in labels)}
+        ]
+
+        datos = {
+            "key": issue.key,
+            "summary": issue.fields.summary,
+            "status": issue.fields.status.name,
+            "assignee": issue.fields.assignee.displayName if issue.fields.assignee else "Sin asignar",
+            "checklist": checklist
+        }
+
+        return render_template("form.html", resultado=datos)
+
+    except Exception as e:
+        return render_template("form.html", error=f"❌ Error al consultar el ticket: {str(e)}")
 
 
 
