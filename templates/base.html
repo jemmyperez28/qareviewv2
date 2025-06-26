@@ -95,15 +95,75 @@
                 padding: 1rem;
             }
         }
+        body.wiki-mode {
+    background: #ececec;
+        }
+
+        .wiki-wrapper {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .wiki-menu {
+            width: 220px;
+            background: #f3f3f3;
+            padding: 1rem;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+
+        .wiki-menu ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .wiki-menu a {
+            text-decoration: none;
+            color: #6200ea;
+        }
+
+        .wiki-content {
+            flex: 1;
+            background: white;
+            padding: 2rem;
+            border-radius: 6px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+
+        .editar-link {
+            float: right;
+            font-size: 0.8rem;
+            color: #6200ea;
+            text-decoration: none;
+        }
+
+        .comentario {
+            background: #f9f9f9;
+            padding: 1rem;
+            border-left: 4px solid #6200ea;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .responder button,
+        .comentar {
+            font-size: 0.85rem;
+            background: transparent;
+            border: none;
+            color: #6200ea;
+            cursor: pointer;
+        }
     </style>
 </head>
-<body>
+<body class="{% if request.path.startswith('/wiki') %}wiki-mode{% endif %}">
     <aside>
         <h1>🧪 QAIRA</h1>
         <a href="/auth"><span class="material-symbols-outlined">vpn_key</span>Autenticación</a>
         <a href="/form"><span class="material-symbols-outlined">search</span>Validar DataX</a>
         <a href="/tickets"><span class="material-symbols-outlined">table_chart</span>Client Solutions TEST</a>
         <a href="/test"><span class="material-symbols-outlined">science</span>Test</a>
+        <a href="/wiki"><span class="material-symbols-outlined">menu_book</span>Wiki QA</a>
+
     </aside>
 
     <div class="container">

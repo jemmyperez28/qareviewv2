@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Wiki QA Perú - Kirby{% endblock %}
+
+{% block content %}
+<div class="wiki-wrapper">
+  <!-- Menú lateral -->
+  <nav class="wiki-menu">
+    <h3>📂 Navegación Wiki</h3>
+    <ul>
+      <li><a href="/wiki">Kirby</a></li>
+      <li><a href="/wiki">Hammurabi</a></li>
+      <li><a href="/wiki">Mallas</a></li>
+      <li><a href="/wiki">Mallas ADA</a></li>
+      <li><a href="/wiki">Boletines</a></li>
+      <li><a href="/wiki">Anuncios</a></li>
+      <li><a href="/wiki">Enlaces referenciales</a></li>
+    </ul>
+  </nav>
+
+  <!-- Contenido -->
+  <div class="wiki-content">
+    <h1>
+      🧠 {{ wiki.titulo }}
+      {% if puede_editar %}
+        <a href="#" title="Editar artículo" class="editar-link">✏️ Editar</a>
+      {% endif %}
+    </h1>
+
+    <div class="contenido-articulo">
+        {% include 'wiki_kirby_content.html' %}
+    </div>
+
+    <hr>
+
+    <h2>💬 Comentarios de la Comunidad</h2>
+    {% for c in wiki.comentarios %}
+      <div class="comentario">
+        <strong>{{ c.autor }}</strong><br>
+        {{ c.mensaje }}
+        <div class="responder">
+          <button>Responder</button>
+        </div>
+      </div>
+    {% endfor %}
+
+    <button class="comentar">Comentar</button>
+  </div>
+</div>
+{% endblock %}

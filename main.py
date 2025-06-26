@@ -264,6 +264,18 @@ def validar_datax():
     except Exception as e:
         return render_template("form.html", error=f"❌ Error al consultar el ticket: {str(e)}")
 
+@app.route('/wiki')
+def wiki():
+    contenido_kirby = {
+    "titulo": "Kirby QA en BBVA Perú",
+    "comentarios": [...],
+}
+
+    usuarios_autorizados = {"manuel.chapilliquen", "luis.sanchez.huaman", "ana.dqa"}
+    usuario_actual = jira_auth_token.get("username", "")
+    puede_editar = usuario_actual in usuarios_autorizados
+
+    return render_template("wiki.html", wiki=contenido_kirby, puede_editar=puede_editar)
 
 
 if __name__ == '__main__':
